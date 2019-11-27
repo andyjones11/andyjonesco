@@ -1,0 +1,198 @@
+---
+title: Extensible Modals in React 
+subtitle: Simple and Extensible Modals in React 
+date: "2015-05-01"
+---
+
+Recently I've come across a really effective pattern for implementing modals in React applications. This leverages some great tips on [How to use React Context Effectively](https://kentcdodds.com/blog/how-to-use-react-context-effectively) by [Kent Dodds]([https://twitter.com/kentcdodds/](https://twitter.com/kentcdodds/)) which mean we can use the Context API to store data about the state of our modals and share those across the whole of our application. We can also leverage React Hooks and Portals to make implementing modals as easy as possible.
+
+If you just want to see the code you can find the CodeSandbox  [here](https://codesandbox.io/s/react-modals-andyjonesco-k6o25).
+
+## A Login Form Modal
+
+Let's create a simple application with a login form which we want to display as a modal.
+
+The login form looks as follows:
+
+```javascript
+const LoginForm = () => (
+  <Form>
+    <Form.Group>
+      <Form.Label>Email address</Form.Label>
+      <Form.Control type="email" placeholder="Enter email" />
+    </Form.Group>
+
+    <Form.Group>
+      <Form.Label>Password</Form.Label>
+      <Form.Control type="password" placeholder="Password" />
+    </Form.Group>
+
+    <Button>
+      Login
+    </Button>
+  </Form>
+);
+
+export default LoginForm;
+```
+
+We want to show the login modal when the login button is clicked. The login button lives within the application root.
+
+```javascript
+const Root = () => {
+  return (
+    <div style={{ height: "100vh", minWidth: "100vw", backgroundColor: "#F0F0F0", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 40 }}>
+      <Button style={{ marginRight: "10px" }}>Log In</Button>
+    </div>
+  )
+};
+
+const App = () => <Root/>;
+
+export default App;
+```
+
+### Step One: Create a new Modal Root
+
+Modals will have their own entrypoint in the html file. Since modals sit on top of the rest of the application its helpful separate where modals render from the rest of our application. We add a new div with an id of `modal-root` below the main `root` div in the `index.html` file.
+
+```html
+  ...
+  <body>
+    <div id="root"></div>
+    <div id="modal-root"></div>
+  </body>
+  ...
+```
+
+### Step Two: Create a Reusable Modal and the Modal Login Form
+
+Create a generic modal component to act as the base for all modals in the application.  This receives `children` as a prop, a boolean `showModal` which determines whether the modal should be displayed as-well-as a callback `toggleModal` which toggles the value of `showModal`. Finally we use React Portals to create a portal in the `modal-root` div when `showModal` is `true`. 
+
+```javascript
+const BaseModal = ({ children, showModal, toggleModal }) => (
+  showModal && ReactDom.createPortal(
+    <>
+      <div style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%)", zIndex: 30 }}>
+        <Alert variant="light">
+          <strong style={{ cursor: "pointer", float: "right" }} onClick={() => toggleModal()}>X</strong>
+          {children}
+        </Alert>
+      </div>
+      <div onClick={() => toggleModal()} style={{ position: "fixed", width: "100vw", height: "100vh", backgroundColor: 'rgba(0, 0, 0, 0.2)', top: 0, left: 0, zIndex: 20 }}></div>
+    </>,
+    document.getElementById("modal-root")
+  )
+)
+
+export default BaseModal;
+```
+
+What's great about this is that we can use the `toggleModal` callback to let us control how we hide the modal again once its visible. In this case we have a "X" button which closes the modal but we also let the user close the modal by clicking anywhere on the background around the modal.
+
+To create the Login modal use the `BaseModal` we have just created, passing in the `showModal` state and `toggleModal` callback as props.
+
+```javascript
+import BaseModal from "./BaseModal";
+import LoginForm from "./LoginForm";
+
+const LoginModal = ({ showModal, toggleModal }) => (
+  <BaseModal showModal={showModal} toggleModal={toggleModal}>
+    <LoginForm/>
+  </BaseModal>
+);
+
+export default LoginModal
+```
+
+### Step Three: Create a Context to Store Modal State
+
+Now we get to the interesting bit - create the modal state for the application with a dedicated `ModalContext` .
+
+```javascript
+import React, { useState } from "react";
+
+const ModalContext = React.createContext();
+
+const useModal = () => {
+  const context = React.useContext(ModalContext);
+  if(!context) {
+    throw new Error("useModal must be used within a ModalProvider")
+  }
+  return context
+}
+
+const ModalProvider = (props) => {
+  const [showLoginModal, setShowLoginModal] = useState(false);
+
+  const toggleLoginModal = () => setShowLoginModal(!showLoginModal);
+
+  const modals = {
+    loginModal: { showLoginModal, toggleLoginModal }
+  };
+
+  return <ModalContext.Provider value={modals} {...props} />
+
+}
+
+export {
+  ModalProvider,
+  useModal
+}
+```
+
+What's going on here? Firstly we are creating a Modal context object to store state about the modals in the application. Secondly we create a custom hook `useModal` which will help us access the modal state anywhere in the application. Lastly we create a modal provider object. This initialises the Modal context with the state (showing or hidden) of all modals within the application, as-well-as define the callback method used to toggle each modal state.
+
+Extending this to add more modals in the future is really simple:
+
+```javascript
+  ...
+  // Use the useState hook for a new modal
+  const [showNewModal, setShowNewModal] = useState(false);
+
+  // Create a callback function which will toggle the modal state
+  const toggleNewModal = () => setShowNewModal(!showNewModal);
+
+  // Add the new modal to the modals object and pass that to the provider. 
+  const modals = {
+	...
+    newModal: { showNewModal, toggleNewModal }
+  };
+  ...
+```
+
+### Final Step: Bringing it all together
+
+Wrap the root of the application in the `ModalProvider` we have just created to make the modal state available to the whole of the app. Then instantiate the `LoginModal` component in the `Root` component with state accessed through the `useModal` hook.
+
+```javascript
+import { ModalProvider, useModal } from './contexts/modals';
+
+import LoginModal from "./components/LoginModal";
+
+const Root = () => {
+  const { loginModal: { showLoginModal, toggleLoginModal }} = useModal();
+
+  return (
+    <div style={{ height: "100vh", minWidth: "100vw", backgroundColor: "#F0F0F0", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 40 }}>
+      <Button onClick={() => toggleLoginModal()} style={{ marginRight: "10px" }}>Log In</Button>
+      <LoginModal show={showLoginModal} toggle={toggleLoginModal} />
+    </div>
+  )
+};
+
+const App = () => (
+  <ModalProvider>
+    <Root/> 
+  </ModalProvider>
+);
+
+export default App;
+```
+
+
+And that should be it! When you click the "Login" button you should find that the login form will popup in the centre of the page. Clicking the "X" or anywhere in the background will hide the modal.
+
+React provides everything you need to make implementing modals simple and maintainable. If you have any ideas on suggestions or improvements I would love to hear them! Send me a message on Twitter [@andyjones](https://twitter.com/andyjones11).
+
+For the full code in the example above check out Codesandbox [here](https://codesandbox.io/s/react-modals-andyjonesco-k6o25).
