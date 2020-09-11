@@ -1,65 +1,46 @@
-import Head from 'next/head'
-import styles from '../styles/Home.module.css'
+import Link from "next/link"
+import Layout from "../components/Layout";
 
-export default function Home() {
-  return (
-    <div className={styles.container}>
-      <Head>
-        <title>Create Next App</title>
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
+const PageHeader = () => (
+  <p className="font-mono text-white font-extrabold text-2xl leading-9 tracking-tight">
+    I'm Andy Jones, a software developer based in London, UK
+  </p>
+)
 
-      <main className={styles.main}>
-        <h1 className={styles.title}>
-          Welcome to <a href="https://nextjs.org">Next.js!</a>
-        </h1>
-
-        <p className={styles.description}>
-          Get started by editing{' '}
-          <code className={styles.code}>pages/index.js</code>
-        </p>
-
-        <div className={styles.grid}>
-          <a href="https://nextjs.org/docs" className={styles.card}>
-            <h3>Documentation &rarr;</h3>
-            <p>Find in-depth information about Next.js features and API.</p>
-          </a>
-
-          <a href="https://nextjs.org/learn" className={styles.card}>
-            <h3>Learn &rarr;</h3>
-            <p>Learn about Next.js in an interactive course with quizzes!</p>
-          </a>
-
-          <a
-            href="https://github.com/vercel/next.js/tree/master/examples"
-            className={styles.card}
-          >
-            <h3>Examples &rarr;</h3>
-            <p>Discover and deploy boilerplate example Next.js projects.</p>
-          </a>
-
-          <a
-            href="https://vercel.com/import?filter=next.js&utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className={styles.card}
-          >
-            <h3>Deploy &rarr;</h3>
-            <p>
-              Instantly deploy your Next.js site to a public URL with Vercel.
-            </p>
-          </a>
-        </div>
-      </main>
-
-      <footer className={styles.footer}>
-        <a
-          href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Powered by{' '}
-          <img src="/vercel.svg" alt="Vercel Logo" className={styles.logo} />
+const Links = () => (
+  <div className="flex font-semibold">
+    <div className="mr-3">
+      <Link href="/articles">
+        <a className="hover:bg-white hover:text-black p-2 transition-colors duration-200 ease-in-out">
+          Articles
         </a>
-      </footer>
+      </Link>
     </div>
-  )
-}
+    <div className="mr-3">
+      <a href="#" className="hover:bg-white hover:text-black p-2 transition-colors duration-200 ease-in-out">Work</a>
+    </div>
+    <div className="mr-3">
+      <Link href="/contact" className="hover:bg-white hover:text-black p-2 transition-colors duration-200 ease-in-out">
+        <a className="hover:bg-white hover:text-black p-2 transition-colors duration-200 ease-in-out">
+          Contact
+        </a>
+      </Link>
+    </div>
+  </div>
+)
+
+ const Index = () => (
+  <Layout showHeader={false} theme="black">
+    <div className="flex-grow flex flex-col justify-center">
+      <PageHeader />
+      <p className="mt-2 font-sans font-light">
+        This is my little place on the web. Click the links below to explore.
+      </p>
+      <div className="mt-10">
+        <Links />
+      </div>
+    </div>
+  </Layout>
+ )
+
+export default Index
