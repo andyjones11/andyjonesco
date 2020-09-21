@@ -1,6 +1,8 @@
 import Link from "next/link";
 import Layout from "../components/Layout";
 import {getAllArticles} from "../api/articles";
+import Head from "next/head";
+import PageHeader from "../components/PageHeader";
 
 const ArticleTitle = ({ article }) => (
   <div className="my-2">
@@ -13,20 +15,29 @@ const ArticleTitle = ({ article }) => (
 )
 
 const Articles = ({ allArticles }) => (
-  <Layout showHeader={true} theme="white">
-    <h1 className="font-mono font-extrabold text-2xl leading-9 tracking-tight">Articles</h1>
-    <div className="my-6 flex flex-col">
-      {allArticles.map(a => (
-        <ArticleTitle key={a.slug} article={a} />
-      ))}
-    </div>
-  </Layout>
+  <>
+    <Head>
+      <title>Articles - Andy Jones</title>
+    </Head>
+    <Layout showHeader={true} theme="white">
+      <div className="my-6">
+        <PageHeader text="Articles"/>
+        <div className="my-6 flex flex-col">
+          {allArticles.map(a => (
+            <ArticleTitle key={a.slug} article={a} />
+          ))}
+        </div>
+      </div>
+    </Layout>
+  </>
 )
 
-export const getStaticProps = () => ({
-  props: {
-    allArticles: getAllArticles()
+export const getStaticProps = () => {
+  return {
+    props: {
+      allArticles: getAllArticles()
+    }
   }
-})
+}
 
 export default Articles

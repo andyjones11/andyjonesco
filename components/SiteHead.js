@@ -2,7 +2,7 @@ import Head from "next/head";
 
 const SiteHead = () => (
   <Head>
-    <title>Main</title>
+    <title>Andy Jones</title>
     <link rel="icon" href="/favicon.ico" />
   </Head>
 )

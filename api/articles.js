@@ -6,16 +6,13 @@ const articlesDirectory = join(process.cwd(), "pages", "articles")
 
 const getArticleSlugs = () => {
   return fs.readdirSync(articlesDirectory)
+    .filter(file => file.endsWith(".mdx"))
+    .map(file => file.replace(".mdx", ""))
 }
 
-const getArticleBySlug = (slug) => {
-  const pathToArticle = join(articlesDirectory, slug)
-  const files = fs.readdirSync(pathToArticle)
-  const indexFile = files.find(
-    (file) => file.substr(0, file.lastIndexOf(".")) === "index"
-  )
-  const fullPath = join(pathToArticle, indexFile)
-  const fileContents = fs.readFileSync(fullPath, "utf8")
+export const getArticleBySlug = (slug) => {
+  const pathToArticle = join(articlesDirectory, `${slug}.mdx`)
+  const fileContents = fs.readFileSync(pathToArticle, "utf8")
   const { data } = matter(fileContents)
 
   data.slug = slug
@@ -25,9 +22,7 @@ const getArticleBySlug = (slug) => {
 
 export const getAllArticles = () => {
   const slugs = getArticleSlugs()
-  const articles = slugs
+  return slugs
     .map((slug) => getArticleBySlug(slug))
     .sort((postOne, postTwo) => postOne.date > postTwo.date ? "-1" : "1");
-
-  return articles
 }
