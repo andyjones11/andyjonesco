@@ -37,9 +37,6 @@ const Links = () => (
   <Layout showHeader={false} theme="black">
     <div className="flex-grow flex flex-col justify-center">
       <PageHeader />
-      <p className="mt-2 font-sans font-light">
-        This is my little place on the web. Click the links below to explore.
-      </p>
       <div className="mt-10">
         <Links />
       </div>

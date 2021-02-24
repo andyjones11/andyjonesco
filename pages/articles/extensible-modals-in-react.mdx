@@ -13,7 +13,7 @@ Let's create a simple application with a login form which we want to display as 
 
 The login form looks as follows:
 
-```javascript
+```jsx
 const LoginForm = () => (
   <Form>
     <Form.Group>
@@ -35,7 +35,7 @@ export default LoginForm
 
 We want to show the login modal when the login button is clicked. The login button lives within the application root.
 
-```javascript
+```jsx
 const Root = () => {
   return (
     <div
@@ -76,7 +76,7 @@ Modals will have their own entrypoint in the html file. Since modals sit on top 
 
 Create a generic modal component to act as the base for all modals in the application. This receives `children` as a prop, a boolean `showModal` which determines whether the modal should be displayed as-well-as a callback `toggleModal` which toggles the value of `showModal`. Finally we use React Portals to create a portal in the `modal-root` div when `showModal` is `true`.
 
-```javascript
+```jsx
 const BaseModal = ({ children, showModal, toggleModal }) =>
   showModal &&
   ReactDom.createPortal(
@@ -123,7 +123,7 @@ What's great about this is that we can use the `toggleModal` callback to let us 
 
 To create the Login modal use the `BaseModal` we have just created, passing in the `showModal` state and `toggleModal` callback as props.
 
-```javascript
+```jsx
 import BaseModal from "./BaseModal"
 import LoginForm from "./LoginForm"
 
@@ -140,7 +140,7 @@ export default LoginModal
 
 Now we get to the interesting bit - create the modal state for the application with a dedicated `ModalContext` .
 
-```javascript
+```jsx
 import React, { useState } from "react"
 
 const ModalContext = React.createContext()
@@ -172,7 +172,7 @@ What's going on here? Firstly we are creating a Modal context object to store st
 
 Extending this to add more modals in the future is really simple:
 
-```javascript
+```jsx
   ...
   // Use the useState hook for a new modal
   const [showNewModal, setShowNewModal] = useState(false);
@@ -192,7 +192,7 @@ Extending this to add more modals in the future is really simple:
 
 Wrap the root of the application in the `ModalProvider` we have just created to make the modal state available to the whole of the app. Then instantiate the `LoginModal` component in the `Root` component with state accessed through the `useModal` hook.
 
-```javascript
+```jsx
 import { ModalProvider, useModal } from "./contexts/modals"
 
 import LoginModal from "./components/LoginModal"

@@ -17,7 +17,7 @@ const Work = ({ allWork }) => (
               <h3 className="text-lg mb-2">
                 {w.title}
               </h3>
-              <p className="font-thin mb-2">
+              <p className="font-extralight mb-2">
                 {w.description}
               </p>
               <a

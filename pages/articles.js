@@ -20,7 +20,7 @@ const Articles = ({ allArticles }) => (
       <title>Articles - Andy Jones</title>
     </Head>
     <Layout showHeader={true} theme="white">
-      <div className="my-6">
+      <div className="my-10">
         <PageHeader text="Articles"/>
         <div className="my-6 flex flex-col">
           {allArticles.map(a => (
