@@ -24,7 +24,7 @@ const Links = () => (
       </Link>
     </div>
     <div className="mr-3">
-      <Link href="/contact" className="hover:bg-white hover:text-black p-2 transition-colors duration-200 ease-in-out">
+      <Link href="/contact">
         <a className="hover:bg-white hover:text-black p-2 transition-colors duration-200 ease-in-out">
           Contact
         </a>

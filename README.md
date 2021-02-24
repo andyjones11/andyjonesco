@@ -2,11 +2,11 @@ Code behind my personal website [andyjones.co](https://andyjones.co).
 
 ## Getting Started
 
-First, run the development server:
-
 ```bash
-npm run dev
-# or
+# Install the packages
+yarn install
+
+# Run the dev server
 yarn dev
 ```
 
