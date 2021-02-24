@@ -18,7 +18,7 @@
     "next": "10.0.7",
     "next-mdx-enhanced": "^5.0.0",
     "postcss": "^7",
-    "prism-react-renderer": "^1.1.1",
+    "prism-react-renderer": "^1.2.0",
     "react": "17.0.1",
     "react-dom": "17.0.1",
     "slugify": "^1.4.5",
