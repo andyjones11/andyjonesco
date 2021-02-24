@@ -1,0 +1,121 @@
+---
+layout: 'articles-page'
+title: Deploy a React app in AWS using Terraform with a Github Actions Deployment pipeline 
+date: "2021-02-24"
+---
+
+## Introduction
+
+This article explains the key parts of a complete infrastructure setup and deployment pipeline for a barebones React app. Our setup has the following features:
+
+* Hosted in AWS S3
+* Fast content delivery using the AWS Cloudfront CDN
+* SSL/HTTPS certificates issued by AWS
+* All infrastructure provisioned as code using Terraform 
+* A Github Actions deployment pipeline
+
+If you simply want to see the complete code example, you can find that [here](https://TODO).
+
+## Pre-requisites
+
+Before getting started make sure that you have the following ready-to-go:
+
+* Terraform installed ([installation instructions](https://www.terraform.io/downloads.html))
+* An AWS account
+* (For Terraform) An AWS User with programmatic access (an Access Key ID and Secret Access Key) and the following Permissions
+    AmazonS3FullAccess
+    CloudFrontFullAccess
+    AWSCertificateManagerFullAccess
+* (For Github Deployment pipeline) An AWS User with the following permissions:
+    TODO
+    TODO
+
+
+
+
+
+## Understanding AWS and Terraform
+
+In AWS there are 3 parts we need to setup:
+
+1) S3 bucket - we will store all our static files here. AWS can serve these static files for us over the web.
+2) Cloudfront - our CDN will push our static files to AWS Edge locations meaning that our code gets as close to end-users as possible.
+3) An AWS certificate - AWS will issue a certificate for our domain and will send traffic to the Cloudfront distribution.
+
+We will set each of these up using Terraform. Terraform lets us define the "state of the world" that we want our infrastructure to be in. Terraform then works out what changes it needs to apply to set our infrastructure up in the correct state.
+
+The 3 Terraform concepts to keep in mind here are:
+
+1) Resources - A Terraform resource describes a piece of infrastructure in AWS. A resource could be something like an S3 bucket, an EC2 instance. What's important is that a resource is where those objects are defined and created.
+2) Data - Data refers to **existing pieces of infrastructure** already provisioned in AWS. This means that each data object will have a corresponding resource object somewhere else (provided that it was created through Terraform). If you go into the AWS Console and manually create an EC2 instance outside of Terraform, then you can reference that EC2 instance through the Terraform data object.
+3) Variables - As in any programming language, variables are pieces of data (strings or numbers) that we wish to share in our Terraform code. 
+
+
+## Lets write our Terraform
+
+### Setup
+
+```terraform
+provider "aws" {
+  region = var.aws_region
+}
+
+// The domain certificate needs to be created in us-east-1
+// We create a provider with `use1` alias just for this purpose
+provider "aws" {
+  region = "us-east-1"
+  alias = "use1"
+}
+
+locals {
+  domain = "react-aws-terraform-github-actions.andyjones.co"
+  s3_origin_id = "s3-react-aws-terraform-github-actions"
+}
+```
+
+
+### S3 Bucket
+
+```terraform
+data "aws_iam_policy_document" "s3-website-policy" {
+  statement {
+    actions = [
+      "s3:GetObject"
+    ]
+    principals {
+      identifiers = ["*"]
+      type = "AWS"
+    }
+    resources = [
+      "arn:aws:s3:::${var.bucket_name}/*"
+    ]
+  }
+}
+```
+
+```terraform
+resource "aws_s3_bucket" "react-aws-terraform-github-actions-s3-bucket" {
+  bucket = var.bucket_name
+  acl = "public-read"
+  policy = data.aws_iam_policy_document.s3-website-policy.json
+
+  website {
+    index_document = "index.html"
+    error_document = "index.html"
+  }
+}
+
+resource "aws_s3_bucket_public_access_block" "react-aws-terraform-github-actions-s3-access-control" {
+  bucket = aws_s3_bucket.react-aws-terraform-github-actions-s3-bucket.id
+
+  block_public_acls   = true
+  ignore_public_acls = true
+}
+```
+
+
+
+
+
+
+If you would like to suggest any improvements then feel free to open an Issue/PR in the repo.
