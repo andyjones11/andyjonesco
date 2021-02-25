@@ -114,6 +114,24 @@ resource "aws_s3_bucket_public_access_block" "react-aws-terraform-github-actions
 ```
 
 
+## Understanding the Github Actions deployment pipeline
+
+The Github Actions pipeline utilizes the fantastic set of Actions on the [Github Marketplace](https://github.com/marketplace?type=actions).
+
+The pipeline has two stages.
+
+### Stage One - Build
+
+- Clone Repository
+- Build static files
+- Upload static files within the CI pipeline for use by the next stage
+
+### Stage Two - Deploy
+
+- Download the static file bundle from previous step
+- Login to AWS CLI
+- Push static file bundle to S3 bucket
+- Invalidate the `index.html` file in the Cloudfront distribution. This will force all edge servers to re-fetch the latest `index.html` from our S3 bucket.
 
 
 
