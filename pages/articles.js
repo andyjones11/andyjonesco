@@ -3,6 +3,7 @@ import Layout from "../components/Layout";
 import {getAllArticles} from "../api/articles";
 import Head from "next/head";
 import PageHeader from "../components/PageHeader";
+import SiteHead from "../components/SiteHead";
 
 const ArticleTitle = ({ article }) => (
   <div className="my-2">
@@ -16,9 +17,7 @@ const ArticleTitle = ({ article }) => (
 
 const Articles = ({ allArticles }) => (
   <>
-    <Head>
-      <title>Articles - Andy Jones</title>
-    </Head>
+    <SiteHead title="Articles" />
     <Layout showHeader={true} theme="white">
       <div className="my-10">
         <PageHeader text="Articles"/>

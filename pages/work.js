@@ -2,12 +2,11 @@ import Head from "next/head";
 import Layout from "../components/Layout";
 import PageHeader from "../components/PageHeader";
 import {getAllWork} from "../api/work";
+import SiteHead from "../components/SiteHead";
 
 const Work = ({ allWork }) => (
   <>
-    <Head>
-      <title>Work - Andy Jones</title>
-    </Head>
+    <SiteHead title="Work" />
     <Layout showHeader={true} theme="white">
       <div className="my-6">
         <PageHeader text="Work"/>
