@@ -4,7 +4,7 @@ title: Deploy a React app in AWS using Terraform with a Github Actions Deploymen
 date: "2021-02-24"
 ---
 
-## Introduction
+# Introduction
 
 This article explains the key parts of a complete infrastructure setup and deployment pipeline for a barebones React app. The setup has the following features:
 
@@ -14,49 +14,57 @@ This article explains the key parts of a complete infrastructure setup and deplo
 * All infrastructure provisioned as code using Terraform 
 * A Github Actions deployment pipeline
 
-If you simply want to see the complete code example, you can find that [here](https://TODO).
+If you simply want to see the complete code example, you can find that [here](https://github.com/aej/react-aws-terraform-github-actions).
 
-## Pre-requisites
+# Pre-requisites
 
 Before getting started make sure that you have the following ready-to-go:
 
-* An AWS account
-* Two Users in your AWS account with the following permissions and programmatic access (an Access Key ID and a Secret Access Key)
-* A Terraform User:
-- AmazonS3FullAccess
-- CloudFrontFullAccess
-- AWSCertificateManagerFullAccess
-* A Github Deployment pipeline User
-- AmazonS3FullAccess
-- CloudFrontFullAccess
-* Terraform installed ([Installation instructions](https://www.terraform.io/downloads.html)) and configured for use with your AWS account.
-* A domain name
+1. An AWS account
+2. Two Users in your AWS account with the following permissions and programmatic access (an Access Key ID and a Secret Access Key)
+3. A Terraform User with the following AWS Policies:
 
-## Understanding AWS and Terraform
+    - AmazonS3FullAccess
+    - CloudFrontFullAccess
+    - IAMFullAccess
+    - AWSCertificateManagerFullAccess
 
-In AWS there are 3 parts we need to setup:
+4. A Github Deployment pipeline User with the following AWS Policies:
 
-1) An S3 bucket - the static files for the React app will be stored here. AWS can serve these static files for us over the web straight from the S3 bucket.
-2) Cloudfront - a CDN to push the static files to AWS edge locations. This pushes the code as close to end-users as possible.
-3) An AWS certificate - AWS will issue a certificate for our domain and will send traffic to the Cloudfront distribution.
+    - AmazonS3FullAccess
+    - CloudFrontFullAccess
 
-These will be set up using Terraform. Terraform lets you define the "state of the world" that you the infrastructure to be in. Terraform then works out what changes it needs to make to set the infrastructure in the correct state.
+5. Terraform installed and configured for use with your AWS account ([Installation instructions](https://www.terraform.io/downloads.html))
+6. A domain name
+
+# Understanding AWS and Terraform
+
+In AWS there are 3 parts to set up:
+
+1. **S3 bucket** - the static files for the React app will be stored here. AWS can serve these static files for us over the web straight from the S3 bucket.
+2. **Cloudfront** - a CDN to push the static files to AWS edge locations. This pushes the code as close to end-users as possible.
+3. **AWS certificate** - AWS will issue a certificate for our domain and will send traffic to the Cloudfront distribution.
+
+These will be set up using Terraform. Terraform lets you define the "state of the world" that you want the infrastructure to be in. Terraform then works out what changes it needs to make to set the infrastructure in the correct state.
 
 Terraform can be a confusing concept at first, but there are 3 concepts to keep in mind while working in Terraform.
 
-### Concept #1: Resources
-A Terraform resource describes a piece of infrastructure in AWS. A resource could be something like an S3 bucket, an EC2 instance. What's important is that a resource is where those objects are defined and created.
+1. **Resources**
 
-### Concept #2: Data
-Data refers to **existing pieces of infrastructure** already running in the infrastructure. This means that each data object will have a corresponding resource object somewhere else (provided that it was created through Terraform). If you go into the AWS Console and manually create an EC2 instance without using Terraform, then you can reference that EC2 instance through the Terraform data object.
+    A Terraform resource describes a piece of infrastructure in AWS. A resource could be something like an S3 bucket, an EC2 instance. What's important is that a resource is where those objects are defined and created.
 
-### Concept #3: Variables
-3) Variables are pieces of data (strings or numbers) that we wish to share between Terraform code.
+2. **Data**
+
+    Data refers to **existing pieces of infrastructure** already running in the infrastructure. This means that each data object will have a corresponding resource object somewhere else (provided that it was created through Terraform). If you go into the AWS Console and manually create an EC2 instance without using Terraform, then you can reference that EC2 instance through the Terraform data object.
+
+3. **Variables**
+
+    Variables are pieces of data (strings or numbers) that we wish to share between Terraform code.
 
 
-## Provisioning the Infrastructure using Terraform
+# Provisioning the Infrastructure using Terraform
 
-### Setup
+## Setup
 
 Create a new file called `variables.tf` and add the following.
 
@@ -72,10 +80,10 @@ variable "aws_region" {
 }
 ```
 
-You can replace the bucket name and aws region defaults if you wish.
+Replace the `bucket_name` and `aws_region` as required.
 
 
-#### Initialize Terraform
+### Initialize Terraform
 
 Create a new file called `main.tf`. For now all Terraform code will be written inside this file. At a later point it can be split out into separate files.
 
@@ -95,14 +103,13 @@ locals {
 }
 ```
 
-Replace the domain with your domain name. Two providers are created. The second provider is configured to use `us-east-1` region and will be used to create the SSL certificate.
+The `domain` should be the domain the application should be run on and `s3_origin_id` can be anything. Two providers are created. The second provider is configured to use `us-east-1` since SSL certificates can only be created in this region.
 
 In the same folder as the `main.tf` file, run `terraform init` to initialize a new Terraform project.
 
+### S3 bucket
 
-#### AWS S3 bucket
-
-Now create the S3 bucket and attach the s3-website-policy. Notice that this policy already exists in AWS so its referenced to using the `data` declaration in the code.
+Create the S3 bucket and attach the s3-website-policy. Notice that this policy already exists in AWS so it's referenced to using the `data` declaration.
 
 ```json
 data "aws_iam_policy_document" "s3-website-policy" {
@@ -141,16 +148,18 @@ resource "aws_s3_bucket_public_access_block" "react-aws-terraform-github-actions
 }
 ```
 
-This creates the S3 bucket and configures the public access rules for that bucket. Test out the configuration by running `terraform plan`. You should see the following:
+This creates the S3 bucket and configures the public access rules for that bucket. Test out the configuration by running `terraform plan` to see the planned changes:
 
-TODO OUTPUT
+```bash
+Plan: 2 to add, 0 to change, 0 to destroy
+```
 
 Implement the changes to AWS using `terraform apply`. Type yes to confirm the changes.
 
 
-#### SLL Certificate
+### SLL Certificate
 
-Create the SSL certificate for your domain. Notice that the `use1` provider is used since certificates can only be created in the us-east-1 region.
+Create the SSL certificate for your domain. Notice that the `use1` provider is used.
 
 ```json
 resource "aws_acm_certificate" "react-aws-terraform-github-actions-cert" {
@@ -164,19 +173,20 @@ resource "aws_acm_certificate" "react-aws-terraform-github-actions-cert" {
 }
 ```
 
-Once again run `terraform plan`. You should see the following output:
+Once again run `terraform plan` to see the planned changes:
 
-TODO
+```bash
+Plan: 1 to add, 0 to change, 0 to destroy
+```
 
 Run `terraform apply` to create the certificate.
 
-AWS will require you to confirm the certificate manually before its ready for use. In order to confirm the certificate log into the AWS console and from the `us-east-1` region navigate to "Certificate Manager". The certificate for your domain will be listed there. Follow the instructions to validate the domain. This will require adding a specific CNAME record to the domain's DNS records. It can take a few minutes for this to verify.
+AWS will require you to confirm the certificate manually before it's ready for use. In order to confirm the certificate log into the AWS console and from the `us-east-1` region, navigate to "Certificate Manager". The certificate for your domain will be listed there. Follow the instructions to validate the domain. This will usually require adding a specific CNAME record to the domain's DNS records. It can take a few minutes for this to verify.
 
 
-#### Cloudfront distribution
+### Cloudfront distribution
 
-The final piece of infrastructure we need to provision is the CDN. Use the following terraform to create the Cloudfront distribution.
-
+The final piece of infrastructure to provision is the CDN. Use the following Terraform to create the Cloudfront distribution.
 
 ```json
 resource "aws_cloudfront_distribution" "react-aws-terraform-github-actions" {
@@ -221,29 +231,39 @@ resource "aws_cloudfront_distribution" "react-aws-terraform-github-actions" {
 }
 ```
 
-This creates a CDN which points to the S3 bucket and uses the certificate. Notice in the `custom_error_response` section that all 404 responses are translated into HTTP 200 with the body of `/index.html`. This means that if the app is using client-side routing (such as [React Router](https://github.com/ReactTraining/react-router)) then the app will still render and initialize the application in the browser. For example a the S3 bucket will return an HTTP 404 for a request sent to https://yourdomain.com/some-path. The CDN maps that 404 into a 200 and returns the 'index.html` file.
+This creates a CDN which points to the S3 bucket and uses the certificate. Notice in the `custom_error_response` section that all 404 responses are translated into HTTP 200 with the body of `/index.html`. This means that if the app is using client-side routing (such as [React Router](https://github.com/ReactTraining/react-router)) then the app will still render and initialize the application in the browser. For example a the S3 bucket will return an HTTP 404 for a request sent to https://yourdomain.com/path-that-does-not-exist. The CDN maps that 404 into a 200 and returns the `index.html` file in the response body.
+
+Run `terraform plan` to see the planned changes:
 
 
-## Understanding the Github Actions deployment pipeline
+```bash
+Plan: 1 to add, 0 to change, 0 to destroy.
+```
+
+If all is good then apply the changes with `terraform apply`.
+
+The last step is to create a CNAME DNS record for the domain which points to the Cloudfront domain name. The Cloudfront domain name can be found from the AWS Console.
+
+# Understanding the Github Actions deployment pipeline
 
 The Github Actions pipeline utilizes the fantastic set of Actions on the [Github Marketplace](https://github.com/marketplace?type=actions).
 
 The pipeline has two stages:
 
-### Stage One - Build
+## Stage One - Build
 
 - Clone the repository
 - Build static files
 - Upload the built static files as an artifact for use by Stage Two
 
-### Stage Two - Deploy
+## Stage Two - Deploy
 
-- Download the static file bundle from the build step
+- Download the static file bundle from Stage One
 - Login to the AWS CLI
 - Push the static file bundle to S3 bucket
-- Invalidate the `index.html` file in the Cloudfront distribution. This will force all edge servers to re-fetch the latest `index.html` from our S3 bucket.
+- Invalidate the `index.html` file in the Cloudfront distribution. This will force all edge servers to re-fetch the latest `index.html` from S3.
 
-### Create IAM Policy to Allow Github Actions to invalidate paths in Cloudfront
+## Create IAM Policy to Allow Github Actions to invalidate paths in Cloudfront
 
 In order to invalidate the `index.html` file in Cloudfront a specific policy is required. Create this using Terraform.
 
@@ -266,22 +286,18 @@ resource "aws_iam_policy" "cloudfront-invalidate-paths" {
 }
 ```
 
-Running `terraform plan` should return the following output:
+Run `terraform apply` to create the policy and from the AWS IAM console assign this policy to the Github deployment pipeline User from the AWS IAM Console.
 
-TODO
 
-Run `terraform apply` to create the policy and from the AWS IAM console assign this policy to the Github deployment pipeline User.
+## Create the Github action
 
-### Create the Github action
-
-Create a new file for the Github actions.
+In the same location as the React app, create the Github action yaml file.
 
 ```bash
 mkdir .github/ && mkdir .github/workflows && touch .github/workflows/main.yml
 ```
 
-And create the Steps for the Github actions
-
+and create the Steps for the Github actions as follows:
 
 ```yaml
 name: Deploy Production
@@ -350,11 +366,15 @@ CLOUDFRONT_DISTRIBUTION_ID
 
 where the `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` are the programmatic access keys for the Github Deployment User in AWS.
 
+The `CLOUDFRONT_DISTRIBUTION_ID` can be found in the AWS Console.
+
 Update the `AWS_REGION` env variable in the `main.yml` file to the correct region.
 
 
-## Conclusion
+# Conclusion
 
-Now any time the Github repository is pushed to this Build and Deploy pipeline will be triggered. What is great about this setup is that its easy to replicate again and again for any new static sites and the AWS costs are incredibly low.
+Everything should now be setup. Any time the Github repository is pushed to the Build and Deploy pipeline will be triggered.
+
+What's great about this setup is that its easy to replicate again for any static site and the AWS costs are incredibly low.
 
 If you would like to suggest any improvements then feel free to send me a message on [Twitter](https://twitter.com/andyjones11) or open an Issue/PR in the [example repo](https://github.com/aej/react-aws-terraform-github-actions).

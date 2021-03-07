@@ -4,6 +4,7 @@ import Code from "../components/Code";
 
 
 const components = {
+  h1: props => <h2 className="mt-16 text-xl font-semibold" {...props} />,
   h2: props => <h2 className="mt-10 text-lg font-semibold" {...props} />,
   h3: props => <h2 className="mt-10 font-bold" {...props} />,
   p: (props) => <p className="mt-8 lg:mt-6">{props.children}</p>,
