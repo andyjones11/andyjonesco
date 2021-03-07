@@ -1,7 +1,7 @@
 const defaultTheme = require('tailwindcss/defaultTheme')
 
 module.exports = {
-  purge: ['./pages/**/*.{js,jsx}', './components/**/*.{js,jsx}'],
+  purge: ['./pages/**/*.{js,jsx}', './components/**/*.{js,jsx}', './layouts/**/*.{js,jsx}'],
   theme: {
     fontFamily: {
       'sans': ['"Inter var"', ...defaultTheme.fontFamily.sans],
